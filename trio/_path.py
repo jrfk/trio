@@ -2,6 +2,7 @@
 # Commit: 8771618c56cab079f7acd80aafe89255e8164408
 # URL: https://github.com/python-trio/trio/commit/8771618c56cab079f7acd80aafe89255e8164408
 # Purpose: Temporary Python 3.13 compatibility for tag/v0.21.0
+# Note: Removed @final decorators for v0.21.0 compatibility (final not available in trio._util)
 
 from __future__ import annotations
 
@@ -13,7 +14,7 @@ from inspect import cleandoc
 from typing import IO, TYPE_CHECKING, Any, BinaryIO, ClassVar, TypeVar, overload
 
 from trio._file_io import AsyncIOWrapper, wrap_file
-from trio._util import final
+#from trio._util import final
 from trio.to_thread import run_sync
 
 if TYPE_CHECKING:
@@ -188,7 +189,7 @@ class Path(pathlib.PurePath):
     ) -> AsyncIOWrapper[BinaryIO]: ...
 
     @overload
-    async def open(  # type: ignore[explicit-any]  # Any usage matches builtins.open().
+    async def open(  # type: ignore[misc, explicit-any]  # Any usage matches builtins.open().
         self,
         mode: str,
         buffering: int = -1,
@@ -249,11 +250,7 @@ class Path(pathlib.PurePath):
     if sys.version_info >= (3, 13):
         full_match = _wrap_method(pathlib.Path.full_match)
 
-    def as_uri(self) -> str:
-        return pathlib.Path.as_uri(self)
 
-
-@final
 class PosixPath(Path, pathlib.PurePosixPath):
     """An async :class:`pathlib.PosixPath` that executes blocking methods in :meth:`trio.to_thread.run_sync`."""
 
@@ -262,7 +259,6 @@ class PosixPath(Path, pathlib.PurePosixPath):
     _wrapped_cls: ClassVar[type[pathlib.Path]] = pathlib.PosixPath
 
 
-@final
 class WindowsPath(Path, pathlib.PureWindowsPath):
     """An async :class:`pathlib.WindowsPath` that executes blocking methods in :meth:`trio.to_thread.run_sync`."""
 
