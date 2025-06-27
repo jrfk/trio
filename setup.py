@@ -69,7 +69,7 @@ Vital statistics:
 """
 
 setup(
-    name="trio-py313-patch",
+    name="trio",
     version=__version__,
     description="A friendly Python library for async concurrency and I/O",
     long_description=LONG_DESC,
