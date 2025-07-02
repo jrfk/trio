@@ -432,20 +432,34 @@ traceback.TracebackException.__init__ = traceback_exception_init  # type: ignore
 traceback_exception_original_format = traceback.TracebackException.format
 
 
-def traceback_exception_format(self, *, chain=True):
-    yield from traceback_exception_original_format(self, chain=chain)
-
-    for i, exc in enumerate(self.embedded):
-        yield "\nDetails of embedded exception {}:\n\n".format(i + 1)
-        yield from (textwrap.indent(line, " " * 2) for line in exc.format(chain=chain))
+def traceback_exception_format(self, *, chain=True, colorize=None):
+    import sys
+    if sys.version_info >= (3, 13):
+        yield from traceback_exception_original_format(self, chain=chain, colorize=colorize)
+        
+        for i, exc in enumerate(self.embedded):
+            yield "\nDetails of embedded exception {}:\n\n".format(i + 1)
+            yield from (textwrap.indent(line, " " * 2) for line in exc.format(chain=chain, colorize=colorize))
+    else:
+        yield from traceback_exception_original_format(self, chain=chain)
+        
+        for i, exc in enumerate(self.embedded):
+            yield "\nDetails of embedded exception {}:\n\n".format(i + 1)
+            yield from (textwrap.indent(line, " " * 2) for line in exc.format(chain=chain))
 
 
 traceback.TracebackException.format = traceback_exception_format  # type: ignore
 
 
 def trio_excepthook(etype, value, tb):
-    for chunk in traceback.format_exception(etype, value, tb):
-        sys.stderr.write(chunk)
+    # Python 3.13+ compatibility: format_exception added colorize parameter
+    import sys
+    if sys.version_info >= (3, 13):
+        for chunk in traceback.format_exception(etype, value, tb, colorize=False):
+            sys.stderr.write(chunk)
+    else:
+        for chunk in traceback.format_exception(etype, value, tb):
+            sys.stderr.write(chunk)
 
 
 monkeypatched_or_warned = False
